@@ -368,6 +368,8 @@ class BancorSegment extends React.Component {
 		this.bcAcc = new Bond
 		this.base = new Bond
 		this.token = new Bond
+		this.init_base = new Bond
+		this.init_token = new Bond
 		this.cw1k = new Bond
 	}
 
@@ -378,45 +380,121 @@ class BancorSegment extends React.Component {
 				<Header.Content>
 					Bandot
 					<Header.Subheader>
-						base_sup: <Pretty value={runtime.bancor.base} /> | 
+						<Label>base_sup:
+							<Label.Detail> <Pretty value={runtime.bancor.base} /> </Label.Detail>
+						</Label>
+						<Label>token_sup:
+							<Label.Detail> <Pretty value={runtime.bancor.token} /> </Label.Detail>
+						</Label>
+						<Label>cw1k:
+							<Label.Detail> <Pretty value={runtime.bancor.cw} /> </Label.Detail>
+						</Label>
+						<Label>admin:
+							<Label.Detail> <Pretty value={runtime.bancor.admin} /> </Label.Detail>
+						</Label>
+						{/* base_sup: <Pretty value={runtime.bancor.base} /> | 
 						token_supp: <Pretty value={runtime.bancor.token} /> |
 						cw1k:  <Pretty value={runtime.bancor.cw} /> <br/>
-						admin: <Pretty value={runtime.bancor.admin} /> 
+						admin: <Pretty value={runtime.bancor.admin} />  */}
 					</Header.Subheader>
 				</Header.Content>
 			</Header>
-				<div style={{ paddingBottom: '1em' }}></div>
-				
+			<div style={{ paddingBottom: '1em' }}>
 				<SignerBond bond={this.bcAcc} /> 
-				{/* mytoken: <Pretty value={runtime.bancor.owedToken(this.bcAcc)} /> */}
+				<If condition={this.bcAcc.ready()} then={ <div>  
+					<Label>Owned: 
+						<Label.Detail> <Pretty value={runtime.bancor.ownedToken(this.bcAcc)} /> </Label.Detail>
+					</Label>
+					
+				</div> } />
+			</div>
 
-				{/* <TransactButton
-					content="Bancor"
-					icon='paw'
-					tx={{
-						sender: runtime.indices.tryIndex(this.bcAcc),
-						call: calls.bancor.set_bancor(this.base, this.token, this.cw1k)
-					}}
-				/>
-
+			<div style={{ paddingBottom: '1em' }}> 
+				<InputBond bond={this.base} placeholder="base" />
+				<InputBond bond={this.token} placeholder="token" />
 				<TransactButton
-					content="buy"
+					content="Buy"
 					icon='paw'
 					tx={{
 						sender: runtime.indices.tryIndex(this.bcAcc),
-						call: calls.bancor.buy(this.base, this.token)
-					}}
+						call: calls.bancor.buy(
+							runtime.indices.tryIndex(this.base), 
+							runtime.indices.tryIndex(this.token))
+					}} 
 				/>
-
+				
 				<TransactButton
-					content="sell"
+					content="Sell"
 					icon='paw'
 					tx={{
 						sender: runtime.indices.tryIndex(this.bcAcc),
-						call: calls.bancor.sell(this.base, this.token)
+						call: calls.bancor.sell(
+							runtime.indices.tryIndex(this.base), 
+							runtime.indices.tryIndex(this.token))
 					}}
-				/> */}
+				/> 
+			</div>
+
+			<div style={{ paddingBottom: '1em' }}>
+				<InputBond bond={this.init_base} placeholder='base >1k, : 50000' />
+				<InputBond bond={this.init_token} placeholder='token >1k :5000000 ' />
+				<InputBond bond={this.cw1k} placeholder='cw <1k :500' />
+				<TransactButton
+					content="Create"
+					icon='paw'
+					tx={{
+						sender: runtime.indices.tryIndex(this.bcAcc),
+						call: calls.bancor.setBancor(
+							runtime.indices.tryIndex(this.init_base), 
+							runtime.indices.tryIndex(this.init_token),
+							runtime.indices.tryIndex(this.cw1k))
+					}}
+				/> 
+			</div>
+
+			<div style={{ paddingBottom: '1em' }}>
+				
+			</div>
+
 		</Segment>
 	}
+}
+
+var base
+var token
+var cw
+function buyBancor(amount) {
+	runtime.bancor.base.then(b => base = b)
+	runtime.bancor.token.then(t => token = t)
+	runtime.bancor.cw.then(c => cw = c / 1000.0)
+	console.log("base:" + base)
+	console.log("token:" + token)
+	console.log("cw:" + cw)
+
+	R = parseFloat(token)
+	C = parseFloat(base)
+	F = parseFloat(cw)
+	T = parseFloat(amount)
+	
+	E = -R * (1.0 - Math.pow(1.0 + T/C, F))
+	console.log("E:" + E)
+	return parseInt(E)
+} 
+
+function sellBancor(amount) {
+	runtime.bancor.base.then(b => base = b)
+	runtime.bancor.token.then(t => token = t)
+	runtime.bancor.cw.then(c => cw = c / 1000.0)
+	console.log("base:" + base)
+	console.log("token:" + token)
+	console.log("cw:" + cw)
+
+	R = parseFloat(token)
+	C = parseFloat(base)
+	F = parseFloat(1.0/cw)
+	E = parseFloat(-amount)
+
+	T = C * (Math.pow(1.0 + E/R, F) -1)
+	return parseInt(T)
 }
 

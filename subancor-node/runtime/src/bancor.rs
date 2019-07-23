@@ -35,6 +35,9 @@ decl_module! {
 
         fn set_bancor(origin, init_base:u128, init_token:u128, init_cw1k:u64) -> Result {
             let sender = ensure_signed(origin)?;
+            ensure!(init_base >= 1000, "base must >1000");
+            ensure!(init_token >= 1000, "token must >1000");
+            ensure!(init_cw1k > 0 && init_cw1k <= 1000 , "cw1k must 0-1000");
 
             <Base<T>>::put(init_base);
             <Token<T>>::put(init_token);
@@ -50,13 +53,17 @@ decl_module! {
 
         fn buy(origin, base: u128, token: u128) -> Result{
             let sender = ensure_signed(origin)?;
+            let admin = Self::admin();
+            ensure!(sender != admin , "Admin cannot buy");
+
+            let admin_token = Self::owned_token(&admin);
+            let sender_token = Self::owned_token(&sender);
+            ensure!(admin_token >= token, "Not enough supply.");
 
             let base_sup = Self::base_supply();
             let token_sup = Self::token_supply();
-            let admin = Self::admin();
-            let admin_token = Self::owned_token(&admin);
-            let sender_token = Self::owned_token(&sender);
-            ensure!(admin_token >= token, "Not enough balance.");
+            ensure!(base > 0, "Invalid base");
+            ensure!(token > 0 && token <= token_sup, "Invalid token");
 
             <Base<T>>::put(base_sup + base);
             <Token<T>>::put(token_sup - token);
@@ -70,13 +77,17 @@ decl_module! {
 
         fn sell(origin, base: u128, token: u128) -> Result {
             let sender = ensure_signed(origin)?;
+            let admin = Self::admin();
+            ensure!(sender != admin , "Admin cannot sell");
+
+            let admin_token = Self::owned_token(&admin);
             let sender_token = Self::owned_token(&sender);
             ensure!(sender_token >= token, "Not enough balance.");
 
             let base_sup = Self::base_supply();
             let token_sup = Self::token_supply();
-            let admin = Self::admin();
-            let admin_token = Self::owned_token(&admin);
+            ensure!(base > 0 && base <= base_sup, "Invalid base");
+            ensure!(token > 0, "Invalid token");
 
             <Base<T>>::put(base_sup - base);
             <Token<T>>::put(token_sup + token);
