@@ -37,6 +37,7 @@ export class App extends ReactiveComponent {
 	readyRender() {
 		return (<div>
 			<Heading />
+			<BancorSegment />
 			<WalletSegment />
 			<Divider hidden />
 			<AddressBookSegment />
@@ -360,3 +361,62 @@ class TransactionsSegment extends React.Component {
 		</Segment>
 	}
 }
+
+class BancorSegment extends React.Component {
+	constructor() {
+		super()
+		this.bcAcc = new Bond
+		this.base = new Bond
+		this.token = new Bond
+		this.cw1k = new Bond
+	}
+
+	render() {
+		return <Segment style={{margin: '1em'}} padded>
+			<Header as='h2'>
+				<Icon name='certificate' />
+				<Header.Content>
+					Bandot
+					<Header.Subheader>
+						base_sup: <Pretty value={runtime.bancor.base} /> | 
+						token_supp: <Pretty value={runtime.bancor.token} /> |
+						cw1k:  <Pretty value={runtime.bancor.cw} /> <br/>
+						admin: <Pretty value={runtime.bancor.admin} /> 
+					</Header.Subheader>
+				</Header.Content>
+			</Header>
+				<div style={{ paddingBottom: '1em' }}></div>
+				
+				<SignerBond bond={this.bcAcc} /> 
+				{/* mytoken: <Pretty value={runtime.bancor.owedToken(this.bcAcc)} /> */}
+
+				{/* <TransactButton
+					content="Bancor"
+					icon='paw'
+					tx={{
+						sender: runtime.indices.tryIndex(this.bcAcc),
+						call: calls.bancor.set_bancor(this.base, this.token, this.cw1k)
+					}}
+				/>
+
+				<TransactButton
+					content="buy"
+					icon='paw'
+					tx={{
+						sender: runtime.indices.tryIndex(this.bcAcc),
+						call: calls.bancor.buy(this.base, this.token)
+					}}
+				/>
+
+				<TransactButton
+					content="sell"
+					icon='paw'
+					tx={{
+						sender: runtime.indices.tryIndex(this.bcAcc),
+						call: calls.bancor.sell(this.base, this.token)
+					}}
+				/> */}
+		</Segment>
+	}
+}
+
