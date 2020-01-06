@@ -11,7 +11,7 @@ import Identicon from 'polkadot-identicon';
 import { AccountIdBond, SignerBond } from './AccountIdBond.jsx';
 import { BalanceBond } from './BalanceBond.jsx';
 import { InputBond } from './InputBond.jsx';
-import { TransactButton } from './TransactButton.jsx';
+import { TransactButton, TransactButtonAux } from './TransactButton.jsx';
 import { FileUploadBond } from './FileUploadBond.jsx';
 import { StakingStatusLabel } from './StakingStatusLabel';
 import { WalletList, SecretItem } from './WalletList';
@@ -373,6 +373,45 @@ class BancorSegment extends React.Component {
 		this.cw1k = new Bond
 	}
 
+	async buyBancor(amount){
+		let base, token, cw
+		base = await runtime.bancor.base()
+		token = await runtime.bancor.token()
+		cw = await runtime.bancor.cw()
+		console.log("base:" + base)
+		console.log("token:" + token)
+		console.log("cw:" + cw)
+	
+		const R = parseFloat(token)
+		const C = parseFloat(base)
+		const F = parseFloat(cw)
+		const T = parseFloat(amount)
+		
+		const E = -R * (1.0 - Math.pow(1.0 + T/C, F))
+		console.log("E:" + E)
+		//return parseInt(E)
+	} 
+
+	sellBancor(amount) {
+		let base, token, cw
+		runtime.bancor.base.then(b => base = b)
+		runtime.bancor.token.then(t => token = t)
+		runtime.bancor.cw.then(c => cw = c / 1000.0)
+		console.log("amount:" + amount)
+		console.log("base:" + base)
+		console.log("token:" + token)
+		console.log("cw:" + cw)
+	
+		const R = parseFloat(token)
+		const C = parseFloat(base)
+		const F = parseFloat(1.0/cw)
+		const E = parseFloat(-amount)
+	
+		T = C * (Math.pow(1.0 + E/R, F) -1)
+		console.log("T:" + T)
+		return parseInt(T)
+	}
+
 	render() {
 		return <Segment style={{margin: '1em'}} padded>
 			<Header as='h2'>
@@ -408,10 +447,11 @@ class BancorSegment extends React.Component {
 					
 				</div> } />
 			</div>
-
+			<button onClick={this.buyBancor(100)}> Bancor </button>
 			<div style={{ paddingBottom: '1em' }}> 
 				<InputBond bond={this.base} placeholder="base" />
 				<InputBond bond={this.token} placeholder="token" />
+
 				<TransactButton
 					content="Buy"
 					icon='paw'
@@ -420,6 +460,7 @@ class BancorSegment extends React.Component {
 						call: calls.bancor.buy(
 							runtime.indices.tryIndex(this.base), 
 							runtime.indices.tryIndex(this.token))
+							//buyBancor(parseFloat(this.base.map(hexToBytes))))
 					}} 
 				/>
 				
@@ -458,43 +499,5 @@ class BancorSegment extends React.Component {
 
 		</Segment>
 	}
-}
-
-var base
-var token
-var cw
-function buyBancor(amount) {
-	runtime.bancor.base.then(b => base = b)
-	runtime.bancor.token.then(t => token = t)
-	runtime.bancor.cw.then(c => cw = c / 1000.0)
-	console.log("base:" + base)
-	console.log("token:" + token)
-	console.log("cw:" + cw)
-
-	R = parseFloat(token)
-	C = parseFloat(base)
-	F = parseFloat(cw)
-	T = parseFloat(amount)
-	
-	E = -R * (1.0 - Math.pow(1.0 + T/C, F))
-	console.log("E:" + E)
-	return parseInt(E)
-} 
-
-function sellBancor(amount) {
-	runtime.bancor.base.then(b => base = b)
-	runtime.bancor.token.then(t => token = t)
-	runtime.bancor.cw.then(c => cw = c / 1000.0)
-	console.log("base:" + base)
-	console.log("token:" + token)
-	console.log("cw:" + cw)
-
-	R = parseFloat(token)
-	C = parseFloat(base)
-	F = parseFloat(1.0/cw)
-	E = parseFloat(-amount)
-
-	T = C * (Math.pow(1.0 + E/R, F) -1)
-	return parseInt(T)
 }
 
